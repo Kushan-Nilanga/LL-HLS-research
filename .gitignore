@@ -1,0 +1,5 @@
+node_modules
+public
+
+localhost-cert.pem
+localhost-private.pem
