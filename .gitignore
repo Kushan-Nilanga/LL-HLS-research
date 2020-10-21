@@ -3,3 +3,5 @@ public
 
 localhost-cert.pem
 localhost-private.pem
+
+package-lock.json
