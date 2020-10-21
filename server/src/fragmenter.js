@@ -29,7 +29,7 @@ module.exports = async function (source, output) {
     })
 
     .on("progress", function (prog) {
-      console.log(prog.timemark);
+      console.log(prog)
     })
 
     .pipe(outStream);

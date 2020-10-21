@@ -6,7 +6,7 @@
  */
 const http2 = require("http2");
 const fs = require("fs");
-const frag = require("./src/fragmenter");
+const servefMp4 = require('./src/servefMP4');
 
 // Creating certification
 // openssl req -x509 -newkey rsa:2048 -nodes -sha256 -subj '/CN=localhost' -keyout localhost-private.pem -out localhost-cert.pem
@@ -27,7 +27,7 @@ server.on("stream", function (stream, headers) {
     default:
         const parsedURL = headers[":path"].split(".");
         if(parsedURL[parsedURL.length-1]==="fmp4") {
-            servefMP4(stream, headers);
+            servefMp4(stream, headers);
         }
       break;
   }
