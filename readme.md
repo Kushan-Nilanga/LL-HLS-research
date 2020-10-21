@@ -1,9 +1,6 @@
 # problem
 
 a way to reduce the camera to display time to sub-second latencies
- __________       __________       ____________       ________         ________
-| AV Input | ==> | Encoding | ==> | Segmenting |===> | Server | <==== | Client |
-|__________|     |__________|     |____________|     |________| ====> |________|
 
 bottleneck tasks
 - encoding video
