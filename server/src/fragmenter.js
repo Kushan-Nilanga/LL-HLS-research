@@ -34,4 +34,3 @@ module.exports = async function (source, output) {
 
     .pipe(outStream);
 };
-
