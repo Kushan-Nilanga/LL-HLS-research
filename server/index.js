@@ -16,15 +16,17 @@ const server = http2.createSecureServer({
     "cert": fs.readFileSync('localhost-cert.pem')
 });
 
+server.on('error', (err)=> console.log(err));
+
 server.on('stream', function(stream, headers){
     stream.respond({
         ":status":200
     });
-    stream.end("Hello world");
+    stream.end("Hello world from server");
 });
 
-server.listen(3000, async function(){
+server.listen(5000, async function(){
     //await frag('./public/video/shaker.mp4', "./public/out/output.fmp4");
-    createPlaylist("asd", "public/out/path.txt");
-    console.log("listening on port 3000");
+    //createPlaylist("asd", "public/out/path.txt");
+    console.log("server listening on port 5000");
 });

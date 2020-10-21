@@ -11,13 +11,13 @@ module.exports = async function (source, output) {
   ffmpeg(source)
     .native() // simulating a live stream native frames per second
     .addOption([
-      "-g 300",
+      "-g 15",
       "-codec:v libx264",
       "-codec:a copy",
       "-strict experimental",
       "-f mp4",
-      "-x264opts keyint=2:min-keyint=2",
-      "-movflags frag_keyframe+empty_moov",
+      "-x264opts keyint=48:min-keyint=48",
+      "-movflags faststart+frag_keyframe+empty_moov",
     ])
 
     .on("end", function () {
