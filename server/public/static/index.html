@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Low Latency Player</title>
+  </head>
+  <body>
+    <script>
+      const http = new XMLHttpRequest();
+      http.open("GET", "https://localhost:3000/public/out/output.mp4");
+      http.send();
+      async function run() {
+        fetch("https://localhost:3000/public/out/output.mp4").then(() => {
+          console.log("got res");
+        });
+      }
+    </script>
+  </body>
+</html>
+
+<!--
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>HLS Player</title>
+</head>
+
+<body>
+    <video id="video" width="500" height="500" controls></video>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
+    <script>
+        const video = document.getElementById('video');
+        const videoSrc = 'src/out/output.mp4';
+
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                video.play();
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = videoSrc;
+            video.addEventListener('loadedmetadata', () => {
+                video.play();
+            });
+        }
+    </script>
+    <div id='txt'></div>
+</body>
+
+</html>
+
+-->
