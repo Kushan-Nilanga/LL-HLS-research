@@ -6,6 +6,8 @@
     </head>
     <body>
         <script>
+            var fragments = [];
+
             runFetch();
             async function runFetch() {
                 const moov = await fetch("https://localhost:3000/public/out/output.moov.mp4");
