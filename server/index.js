@@ -54,7 +54,6 @@ async function serveStaticPage(stream, headers) {
 
 var moovBlock;
 var mdatBlock = [];
-var streamEnded = false;
 
 /**
  * Accepts a video to be played live and output source and provides a live output
