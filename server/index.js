@@ -52,7 +52,7 @@ async function serveStaticPage(stream, headers) {
     stream.end(data);
 }
 
-var moovBlock;
+var moovBlock = [];
 var mdatBlock = [];
 
 /**
@@ -64,7 +64,6 @@ var mdatBlock = [];
 function transmuxSource(source, output) {
     var i = 0;
     var outStream = fs.createWriteStream(output);
-    var placeholder;
     ffmpeg(source)
         .native() // simulating a live stream native frames per second
         .addOption([
@@ -80,13 +79,12 @@ function transmuxSource(source, output) {
         ])
         .stream()
         .on("data", function (data) {
-            placeholder += data;
             if (i < 2) {
-                moovBlock += data;
+                moovBlock.push(data);
                 i++;
             } else {
                 mdatBlock.push(data);
-                serveLiveData();
+                serveLiveData(data);
             }
         })
         .pipe(outStream);
@@ -103,11 +101,11 @@ async function serveLiveData() {
      * serve the data to outstanding streams
      */
     outstandingStreams.forEach((connection) => {
-        connection.stream.pushStream({ ":path": `https://localhost:3000/public/out/output.${mdatBlock[mdatBlock - 1]}.mp4` }, function (err, pushStream, headers) {
+        connection.stream.pushStream({ ":path": `https://localhost:3000/public/out/output.${mdatBlock[mdatBlock.length - 1]}.mp4` }, function (err, pushStream, headers) {
             if (err) console.log("Live data serving error " + err);
             pushStream.respond({ ":status": 200 });
         });
-        pushStream.end(data);
+        pushStream.end(mdatBlock[mdatBlock.length - 1]);
     });
 }
 
@@ -118,9 +116,11 @@ function serveMedia(stream, headers) {
     var parsedUrl = headers[":path"].split(".");
     if (parsedUrl[parsedUrl.length - 2] === "moov") {
         stream.respond({ ":status": 200 });
-        return stream.end(moovBlock);
+        return stream.end(moovBlock[1]);
+    } else if (parsedUrl[parsedUrl.length - 2] === "ftype") {
+        stream.respond({ ":status": 200 });
+        return stream.end(moovBlock[0]);
     }
-    //ffmpeg.ffprobe("public/out/output.mp4", (err, md) => console.log(md));
     stream.respond({ ":status": 200 });
     return stream.end(mdatBlock[parsedUrl[parsedUrl.length - 2]]);
 }

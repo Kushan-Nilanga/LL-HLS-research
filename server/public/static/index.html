@@ -21,9 +21,9 @@
             runFetch();
 
             // media source (https://github.com/chris729/ws-stream/blob/master/fMP4-video.html)
-            const mime = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
+            const mime = 'video/mp4; codecs="avc1.42c01f,mp4a.40.2"; profiles="iso6,mp41"';
             var mediaSource = new MediaSource();
-            video = document.querySelector("video");
+            var video = document.querySelector("video");
             video.src = URL.createObjectURL(mediaSource);
             var player = videojs("my-player");
             player.play();
@@ -32,17 +32,22 @@
 
             function appendFirstSegment() {
                 URL.revokeObjectURL(video.src);
+                console.log("is mime supported: " + MediaSource.isTypeSupported(mime));
                 sourceBuffer = mediaSource.addSourceBuffer(mime);
 
                 // set mode to sequence so the user can join a stream at anytime
                 var myMode = sourceBuffer.mode;
                 sourceBuffer.mode = "sequence";
 
+                ftype = fragments.shift();
                 moov = fragments.shift();
-                moov = new Uint8Array(moov);
+                init = new Uint8Array(ftype.byteLength + moov.byteLength);
+
+                init.set(ftype, 0);
+                init.set(moov, ftype.byteLength);
 
                 // console.log(muxjs.mp4.tools.inspect(init));
-                sourceBuffer.appendBuffer(moov);
+                sourceBuffer.appendBuffer(init);
                 sourceBuffer.addEventListener("update", appendNextSegment);
             }
 
@@ -50,7 +55,6 @@
             function appendNextSegment() {
                 if (fragments.length > 0 && !sourceBuffer.updating) {
                     next = fragments.shift();
-                    next = new Uint8Array(next);
                     sourceBuffer.appendBuffer(next);
                     console.log("Buffered fragments: " + fragments.length);
                 }
@@ -61,20 +65,28 @@
                 if (fragments.length > 2) {
                     appendFirstSegment();
                 } else {
-                    setTimeout(wait, 30);
+                    setTimeout(wait, 1);
                 }
             }
 
             // fetching data from the origin server
             async function runFetch() {
-                const moov = await fetch("https://localhost:3000/public/out/output.moov.mp4");
+                var moov = await fetch("https://localhost:3000/public/out/output.ftype.mp4");
                 stream = moov.body.getReader();
-                fragments.push(await stream.read());
+                var res = await stream.read();
+                fragments.push(res.value);
+
+                moov = await fetch("https://localhost:3000/public/out/output.moov.mp4");
+                stream = moov.body.getReader();
+                res = await stream.read();
+                fragments.push(res.value);
                 var i = 0;
+
                 setInterval(async function () {
                     const mdat = await fetch(`https://localhost:3000/public/out/output.${i}.mp4`);
                     stream = mdat.body.getReader();
-                    fragments.push(await stream.read());
+                    const res = await stream.read();
+                    fragments.push(res.value);
                     i++;
                 }, 1000);
             }
