@@ -3,20 +3,80 @@
     <head>
         <meta charset="UTF-8" />
         <title>Low Latency Player</title>
+        <link href="//vjs.zencdn.net/7.3.0/video-js.min.css" rel="stylesheet" />
+        <script src="//vjs.zencdn.net/7.3.0/video.min.js"></script>
     </head>
     <body>
+        <div>
+            <video id="my-player" class="video-js" controls muted autoplay data-setup="{}">
+                <p class="vjs-no-js">
+                    To view this video please enable JavaScript, and consider upgrading to a web browser that
+                    <a href="https://videojs.com/html5-video-support/" target="_blank"> supports HTML5 video </a>
+                </p>
+            </video>
+        </div>
+
         <script>
             var fragments = [];
-
             runFetch();
+
+            // media source (https://github.com/chris729/ws-stream/blob/master/fMP4-video.html)
+            const mime = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
+            var mediaSource = new MediaSource();
+            video = document.querySelector("video");
+            video.src = URL.createObjectURL(mediaSource);
+            var player = videojs("my-player");
+            player.play();
+            var sourceBuffer = { updating: true };
+            mediaSource.addEventListener("sourceopen", wait);
+
+            function appendFirstSegment() {
+                URL.revokeObjectURL(video.src);
+                sourceBuffer = mediaSource.addSourceBuffer(mime);
+
+                // set mode to sequence so the user can join a stream at anytime
+                var myMode = sourceBuffer.mode;
+                sourceBuffer.mode = "sequence";
+
+                moov = fragments.shift();
+                moov = new Uint8Array(moov);
+
+                // console.log(muxjs.mp4.tools.inspect(init));
+                sourceBuffer.appendBuffer(moov);
+                sourceBuffer.addEventListener("update", appendNextSegment);
+            }
+
+            // while an update occurs try to push anything out of the segment buffer into the source buffer
+            function appendNextSegment() {
+                if (fragments.length > 0 && !sourceBuffer.updating) {
+                    next = fragments.shift();
+                    next = new Uint8Array(next);
+                    sourceBuffer.appendBuffer(next);
+                    console.log("Buffered fragments: " + fragments.length);
+                }
+            }
+
+            // timeout until init segments have been recieved
+            function wait() {
+                if (fragments.length > 2) {
+                    appendFirstSegment();
+                } else {
+                    setTimeout(wait, 30);
+                }
+            }
+
+            // fetching data from the origin server
             async function runFetch() {
                 const moov = await fetch("https://localhost:3000/public/out/output.moov.mp4");
+                stream = moov.body.getReader();
+                fragments.push(await stream.read());
                 var i = 0;
                 setInterval(async function () {
                     const mdat = await fetch(`https://localhost:3000/public/out/output.${i}.mp4`);
-                    console.log(mdat.byteLenght);
+                    stream = mdat.body.getReader();
+                    fragments.push(await stream.read());
                     i++;
-                }, 30);
+                }, 1000);
             }
         </script>
     </body>

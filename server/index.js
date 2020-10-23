@@ -67,7 +67,17 @@ function transmuxSource(source, output) {
     var placeholder;
     ffmpeg(source)
         .native() // simulating a live stream native frames per second
-        .addOption(["-g 15", "-codec:v libx264", "-codec:a copy", "-strict experimental", "-f mp4", "-movflags faststart+frag_every_frame+empty_moov+default_base_moof"])
+        .addOption([
+            "-c:v libx264",
+            "-c:a aac",
+            "-b:a 44k",
+            "-vf format=yuv420p",
+            "-profile:v baseline",
+            "-level 3.1",
+            "-b:v 900k",
+            "-f mp4",
+            "-movflags frag_every_frame+empty_moov+default_base_moof",
+        ])
         .stream()
         .on("data", function (data) {
             placeholder += data;
@@ -110,7 +120,7 @@ function serveMedia(stream, headers) {
         stream.respond({ ":status": 200 });
         return stream.end(moovBlock);
     }
-
+    //ffmpeg.ffprobe("public/out/output.mp4", (err, md) => console.log(md));
     stream.respond({ ":status": 200 });
     return stream.end(mdatBlock[parsedUrl[parsedUrl.length - 2]]);
 }
