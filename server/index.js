@@ -35,6 +35,8 @@ server.on("stream", function (stream, headers) {
     }
 });
 
+
+// start server
 server.listen(PORT, () => {
     console.log(`listening on ${PORT}`);
     transmuxSource("public/video/shaker.mp4", "public/out/output.mp4");
@@ -57,9 +59,6 @@ var mdatBlock = [];
 
 /**
  * Accepts a video to be played live and output source and provides a live output
- *
- * @param {String} source: live source for transmuxing
- * @param {String} output: output file name
  */
 function transmuxSource(source, output) {
     var i = 0;
@@ -91,6 +90,8 @@ function transmuxSource(source, output) {
 }
 
 var outstandingStreams = [];
+
+// server push function for queued connections
 async function serveLiveData(data) {
     /**
      * serve the data to outstanding streams
@@ -110,13 +111,19 @@ async function serveLiveData(data) {
  */
 function serveMedia(stream, headers) {
     var parsedUrl = headers[":path"].split(".");
+
+    // handle request for moov buffer
     if (parsedUrl[parsedUrl.length - 2] === "moov") {
         stream.respond({ ":status": 200 });
         return stream.end(moovBlock[1]);
+
+    // handle request for ftype buffer
     } else if (parsedUrl[parsedUrl.length - 2] === "ftype") {
         stream.respond({ ":status": 200 });
         return stream.end(moovBlock[0]);
     }
+
+    // handle requests for mdat segments.
     stream.respond({ ":status": 200 });
     return stream.end(mdatBlock[parsedUrl[parsedUrl.length - 2]]);
 }
