@@ -91,12 +91,7 @@ function transmuxSource(source, output) {
 }
 
 var outstandingStreams = [];
-
-/**
- *
- * @param {Buffer} data: Live data to be pushed to client players
- */
-async function serveLiveData() {
+async function serveLiveData(data) {
     /**
      * serve the data to outstanding streams
      */
@@ -104,8 +99,9 @@ async function serveLiveData() {
         connection.stream.pushStream({ ":path": `https://localhost:3000/public/out/output.${mdatBlock[mdatBlock.length - 1]}.mp4` }, function (err, pushStream, headers) {
             if (err) console.log("Live data serving error " + err);
             pushStream.respond({ ":status": 200 });
+            pushStream.end(mdatBlock[mdatBlock.length - 1]);
         });
-        pushStream.end(mdatBlock[mdatBlock.length - 1]);
+        stream.end();
     });
 }
 

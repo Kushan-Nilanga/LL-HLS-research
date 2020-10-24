@@ -86,9 +86,13 @@
                     const mdat = await fetch(`https://localhost:3000/public/out/output.${i}.mp4`);
                     stream = mdat.body.getReader();
                     const res = await stream.read();
-                    fragments.push(res.value);
+                    if (sourceBuffer.updating || fragments.length > 0) {
+                        fragments.push(res.value);
+                    } else {
+                        sourceBuffer.appendBuffer(res.value);
+                    }
                     i++;
-                }, 1000);
+                }, 30);
             }
         </script>
     </body>
