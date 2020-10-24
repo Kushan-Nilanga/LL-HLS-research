@@ -87,12 +87,13 @@
                     stream = mdat.body.getReader();
                     const res = await stream.read();
                     if (sourceBuffer.updating || fragments.length > 0) {
+                        console.log("Buffered fragments: " + fragments.length);
                         fragments.push(res.value);
                     } else {
                         sourceBuffer.appendBuffer(res.value);
                     }
                     i++;
-                }, 30);
+                }, 24);
             }
         </script>
     </body>
